@@ -1,14 +1,10 @@
-# 🚀 Stock Scanner Realtime (TCBS)
+# 🚀 Stock Scanner Realtime V2
 
-Realtime stock scanner using TCBS API.
+## Cải tiến:
+- Không bị empty
+- Hiển thị trend UP / SIDE
+- Điều kiện linh hoạt hơn
 
-## Features
-- No delay (Vietnam data)
-- Scan MA20 + RSI
-- Web dashboard
-
-## Run
-```
+## Run:
 pip install -r requirements.txt
 streamlit run app.py
-```

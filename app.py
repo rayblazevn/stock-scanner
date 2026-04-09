@@ -29,16 +29,16 @@ for stock in stocks:
         rs = gain / loss
         df["RSI"] = 100 - (100 / (1 + rs))
 
-        df["VolAvg"] = df["Volume"].rolling(20).mean()
-
         latest = df.iloc[-1]
 
-        if latest["Close"] > latest["MA20"] and latest["RSI"] > 55:
+        if latest["RSI"] > 50:
+            trend = "UP" if latest["Close"] > latest["MA20"] else "SIDE"
+
             results.append({
                 "Stock": stock,
                 "Price": round(latest["Close"], 2),
                 "RSI": round(latest["RSI"], 2),
-                "MA20": round(latest["MA20"], 2)
+                "Trend": trend
             })
 
     except:
@@ -46,5 +46,9 @@ for stock in stocks:
 
 df_result = pd.DataFrame(results)
 
-st.dataframe(df_result)
+if df_result.empty:
+    st.warning("⚠️ Không có cổ phiếu đạt điều kiện hôm nay")
+else:
+    st.dataframe(df_result)
+
 st.success("✔️ Realtime scanner running")
