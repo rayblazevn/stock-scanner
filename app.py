@@ -1,28 +1,25 @@
 import pandas as pd
-import yfinance as yf
 import requests
 import streamlit as st
 
-# ===== TELEGRAM CONFIG =====
-TELEGRAM_TOKEN = "YOUR_TOKEN"
-CHAT_ID = "YOUR_CHAT_ID"
+st.title("🔥 STOCK SCANNER – REALTIME (TCBS)")
 
-def send_telegram(msg):
-    try:
-        url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
-        requests.post(url, data={"chat_id": CHAT_ID, "text": msg})
-    except:
-        pass
+def get_data(symbol):
+    url = f"https://apipubaws.tcbs.com.vn/stock-insight/v1/stock/bars-long-term?symbol={symbol}&resolution=D&limit=100"
+    res = requests.get(url)
+    data = res.json()["data"]
 
-# ===== LOAD STOCK LIST =====
+    df = pd.DataFrame(data)
+    df = df.rename(columns={"c": "Close", "v": "Volume"})
+    return df
+
 stocks = open("stocks.txt").read().splitlines()
 
 results = []
-signals = []
 
 for stock in stocks:
     try:
-        df = yf.download(stock + ".VN", period="3mo", interval="1d")
+        df = get_data(stock)
 
         df["MA20"] = df["Close"].rolling(20).mean()
 
@@ -36,7 +33,6 @@ for stock in stocks:
 
         latest = df.iloc[-1]
 
-        # ===== CONDITION =====
         if latest["Close"] > latest["MA20"] and latest["RSI"] > 55:
             results.append({
                 "Stock": stock,
@@ -45,23 +41,10 @@ for stock in stocks:
                 "MA20": round(latest["MA20"], 2)
             })
 
-        # ===== BUY SIGNAL =====
-        if latest["Close"] > latest["MA20"] and latest["RSI"] > 55 and latest["Volume"] > 1.5 * latest["VolAvg"]:
-            msg = f"🔥 BUY: {stock} | Price: {round(latest['Close'],2)}"
-            signals.append(msg)
-
     except:
         continue
-
-# ===== SEND TELEGRAM =====
-for s in signals:
-    send_telegram(s)
-
-# ===== WEB UI =====
-st.title("🔥 STOCK SCANNER – PRE BREAK")
 
 df_result = pd.DataFrame(results)
 
 st.dataframe(df_result)
-
-st.success("✔️ Danh sách cổ phiếu sắp chạy")
+st.success("✔️ Realtime scanner running")
