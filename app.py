@@ -2,7 +2,7 @@ import pandas as pd
 import requests
 import streamlit as st
 
-st.title("🔥 STOCK SCANNER – REALTIME (TCBS)")
+st.title("🔥 STOCK SCANNER PRO – TOP CỔ PHIẾU")
 
 def get_data(symbol):
     url = f"https://apipubaws.tcbs.com.vn/stock-insight/v1/stock/bars-long-term?symbol={symbol}&resolution=D&limit=100"
@@ -31,24 +31,27 @@ for stock in stocks:
 
         latest = df.iloc[-1]
 
-        if latest["RSI"] > 50:
-            trend = "UP" if latest["Close"] > latest["MA20"] else "SIDE"
-
-            results.append({
-                "Stock": stock,
-                "Price": round(latest["Close"], 2),
-                "RSI": round(latest["RSI"], 2),
-                "Trend": trend
-            })
+        results.append({
+            "Stock": stock,
+            "Price": round(latest["Close"], 2),
+            "RSI": round(latest["RSI"], 2),
+            "Trend": "UP" if latest["Close"] > latest["MA20"] else "SIDE"
+        })
 
     except:
         continue
 
 df_result = pd.DataFrame(results)
 
-if df_result.empty:
-    st.warning("⚠️ Không có cổ phiếu đạt điều kiện hôm nay")
-else:
-    st.dataframe(df_result)
+if not df_result.empty:
+    df_result = df_result.sort_values(by="RSI", ascending=False)
 
-st.success("✔️ Realtime scanner running")
+    st.subheader("🏆 TOP 5 CỔ PHIẾU MẠNH NHẤT")
+    st.dataframe(df_result.head(5))
+
+    st.subheader("📊 TOÀN BỘ DANH SÁCH")
+    st.dataframe(df_result)
+else:
+    st.warning("Không có dữ liệu")
+
+st.success("✔️ PRO scanner running")
